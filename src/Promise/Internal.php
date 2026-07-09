@@ -6,18 +6,30 @@ class PhpursPromise {
     public $reason = null;
     public $handlers = [];
 
+    public static $fuel = 200;
+
+    public static function queueTask(callable $task) {
+        if (self::$fuel <= 0) {
+            self::$fuel = 200;
+            if (class_exists('\\Revolt\\EventLoop')) {
+                \Revolt\EventLoop::queue($task);
+            } else {
+                $task();
+            }
+        } else {
+            self::$fuel--;
+            $task();
+        }
+    }
+
     public function resolve($val) {
         if ($this->state !== 'pending') return;
         $this->state = 'fulfilled';
         $this->value = $val;
         foreach ($this->handlers as $handler) {
-            if (class_exists('\\Revolt\\EventLoop')) {
-                \Revolt\EventLoop::queue(function() use ($handler) {
-                    $handler->onFulfilled($this->value);
-                });
-            } else {
+            self::queueTask(function() use ($handler) {
                 $handler->onFulfilled($this->value);
-            }
+            });
         }
         $this->handlers = [];
     }
@@ -27,13 +39,9 @@ class PhpursPromise {
         $this->state = 'rejected';
         $this->reason = $err;
         foreach ($this->handlers as $handler) {
-            if (class_exists('\\Revolt\\EventLoop')) {
-                \Revolt\EventLoop::queue(function() use ($handler) {
-                    $handler->onRejected($this->reason);
-                });
-            } else {
+            self::queueTask(function() use ($handler) {
                 $handler->onRejected($this->reason);
-            }
+            });
         }
         $this->handlers = [];
     }
@@ -76,21 +84,13 @@ class PhpursPromise {
         ];
         
         if ($this->state === 'fulfilled') {
-            if (class_exists('\\Revolt\\EventLoop')) {
-                \Revolt\EventLoop::queue(function() use ($handler) {
-                    $handler->onFulfilled($this->value);
-                });
-            } else {
+            self::queueTask(function() use ($handler) {
                 $handler->onFulfilled($this->value);
-            }
+            });
         } elseif ($this->state === 'rejected') {
-            if (class_exists('\\Revolt\\EventLoop')) {
-                \Revolt\EventLoop::queue(function() use ($handler) {
-                    $handler->onRejected($this->reason);
-                });
-            } else {
+            self::queueTask(function() use ($handler) {
                 $handler->onRejected($this->reason);
-            }
+            });
         } else {
             $this->handlers[] = $handler;
         }

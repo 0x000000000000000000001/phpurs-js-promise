@@ -1,0 +1,15 @@
+package:
+  name: phpurs-js-promise
+  dependencies:
+    - console
+    - effect
+    - exceptions
+    - functions
+    - prelude
+  test:
+    main: Test.Main
+    dependencies: []
+workspace:
+  packageSet:
+    registry: 77.11.0
+  extraPackages: {}
