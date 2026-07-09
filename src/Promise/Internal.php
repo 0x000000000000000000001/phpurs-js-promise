@@ -1,98 +1,192 @@
 <?php
 
+class PhpursPromise {
+    public $state = 'pending';
+    public $value = null;
+    public $reason = null;
+    public $handlers = [];
+
+    public function resolve($val) {
+        if ($this->state !== 'pending') return;
+        $this->state = 'fulfilled';
+        $this->value = $val;
+        foreach ($this->handlers as $handler) {
+            if (class_exists('\\Revolt\\EventLoop')) {
+                \Revolt\EventLoop::queue(function() use ($handler) {
+                    $handler->onFulfilled($this->value);
+                });
+            } else {
+                $handler->onFulfilled($this->value);
+            }
+        }
+        $this->handlers = [];
+    }
+
+    public function reject($err) {
+        if ($this->state !== 'pending') return;
+        $this->state = 'rejected';
+        $this->reason = $err;
+        foreach ($this->handlers as $handler) {
+            if (class_exists('\\Revolt\\EventLoop')) {
+                \Revolt\EventLoop::queue(function() use ($handler) {
+                    $handler->onRejected($this->reason);
+                });
+            } else {
+                $handler->onRejected($this->reason);
+            }
+        }
+        $this->handlers = [];
+    }
+
+    public function then($onFulfilled, $onRejected = null) {
+        $p = new PhpursPromise();
+        $handler = (object)[
+            'onFulfilled' => function($v) use ($onFulfilled, $p) {
+                try {
+                    if ($onFulfilled) {
+                        $res = $onFulfilled($v);
+                        if ($res instanceof PhpursPromise) {
+                            $res->then([$p, 'resolve'], [$p, 'reject']);
+                        } else {
+                            $p->resolve($res);
+                        }
+                    } else {
+                        $p->resolve($v);
+                    }
+                } catch (\Throwable $e) {
+                    $p->reject($e);
+                }
+            },
+            'onRejected' => function($e) use ($onRejected, $p) {
+                try {
+                    if ($onRejected) {
+                        $res = $onRejected($e);
+                        if ($res instanceof PhpursPromise) {
+                            $res->then([$p, 'resolve'], [$p, 'reject']);
+                        } else {
+                            $p->resolve($res);
+                        }
+                    } else {
+                        $p->reject($e);
+                    }
+                } catch (\Throwable $e2) {
+                    $p->reject($e2);
+                }
+            }
+        ];
+        
+        if ($this->state === 'fulfilled') {
+            if (class_exists('\\Revolt\\EventLoop')) {
+                \Revolt\EventLoop::queue(function() use ($handler) {
+                    $handler->onFulfilled($this->value);
+                });
+            } else {
+                $handler->onFulfilled($this->value);
+            }
+        } elseif ($this->state === 'rejected') {
+            if (class_exists('\\Revolt\\EventLoop')) {
+                \Revolt\EventLoop::queue(function() use ($handler) {
+                    $handler->onRejected($this->reason);
+                });
+            } else {
+                $handler->onRejected($this->reason);
+            }
+        } else {
+            $this->handlers[] = $handler;
+        }
+        return $p;
+    }
+    
+    public function catch($onRejected) {
+        return $this->then(null, $onRejected);
+    }
+    
+    public function finally($onFinally) {
+        return $this->then(
+            function($v) use ($onFinally) {
+                $onFinally()(); 
+                return $v;
+            },
+            function($e) use ($onFinally) {
+                $onFinally()();
+                throw $e; 
+            }
+        );
+    }
+}
+
 $exports['new'] = function($k) {
-    $result = (object)[
-        'state' => 'pending',
-        'value' => null,
-        'reason' => null
-    ];
-    $resolve = function($val) use ($result) {
-        $result->state = 'fulfilled';
-        $result->value = $val;
+    $p = new PhpursPromise();
+    $resolve = function($val) use ($p) {
+        $p->resolve($val);
     };
-    $reject = function($err) use ($result) {
-        $result->state = 'rejected';
-        $result->reason = $err;
+    $reject = function($err) use ($p) {
+        $p->reject($err);
     };
-    
-    // k is an EffectFn2 in PureScript, so it's a PHP callable taking 2 args.
-    // It returns an Effect (which in PHP evaluates to the returned value or just runs).
     $k($resolve, $reject);
-    
-    return $result;
+    return $p;
 };
 
 $exports['then_'] = function($k, $p) {
-    if ($p->state === 'fulfilled') {
-        // k is EffectFn1, meaning a PHP callable taking 1 arg.
-        return $k($p->value);
-    } elseif ($p->state === 'rejected') {
-        return $p;
-    }
-    return $p;
+    return $p->then($k);
 };
 
 $exports['thenOrCatch'] = function($k, $c, $p) {
-    if ($p->state === 'fulfilled') {
-        return $k($p->value);
-    } elseif ($p->state === 'rejected') {
-        return $c($p->reason);
-    }
-    return $p;
+    return $p->then($k, $c);
 };
 
 $exports['catch'] = function($c, $p) {
-    if ($p->state === 'rejected') {
-        return $c($p->reason);
-    }
-    return $p;
+    return $p->catch($c);
 };
 
 $exports['finally'] = function($k, $p) {
-    $k()(); // k is Effect (Promise Unit) so we evaluate the outer Effect thunk
-    return $p;
+    return $p->finally($k);
 };
 
 $exports['resolve'] = function($a) {
-    return (object)[
-        'state' => 'fulfilled',
-        'value' => $a,
-        'reason' => null
-    ];
+    $p = new PhpursPromise();
+    $p->resolve($a);
+    return $p;
 };
 
 $exports['reject'] = function($err) {
-    return (object)[
-        'state' => 'rejected',
-        'value' => null,
-        'reason' => $err
-    ];
+    $p = new PhpursPromise();
+    $p->reject($err);
+    return $p;
 };
 
 $exports['all'] = function($arr) {
-    $results = [];
-    foreach ($arr as $p) {
-        if ($p->state === 'rejected') {
-            return $p;
-        }
-        // Assuming pure synchronous resolution, pending shouldn't happen,
-        // but if it does, it's a logic error we can't await in PHP anyway.
-        $results[] = $p->value;
+    $p = new PhpursPromise();
+    if (count($arr) === 0) {
+        $p->resolve([]);
+        return $p;
     }
-    return (object)[
-        'state' => 'fulfilled',
-        'value' => $results,
-        'reason' => null
-    ];
+    $results = [];
+    $remaining = count($arr);
+    foreach ($arr as $i => $prom) {
+        $prom->then(function($v) use (&$results, &$remaining, $i, $p) {
+            $results[$i] = $v;
+            $remaining--;
+            if ($remaining === 0) {
+                ksort($results);
+                $p->resolve(array_values($results));
+            }
+        }, function($e) use ($p) {
+            $p->reject($e);
+        });
+    }
+    return $p;
 };
 
 $exports['race'] = function($arr) {
-    if (count($arr) > 0) {
-        return $arr[0];
+    $p = new PhpursPromise();
+    foreach ($arr as $prom) {
+        $prom->then(function($v) use ($p) {
+            $p->resolve($v);
+        }, function($e) use ($p) {
+            $p->reject($e);
+        });
     }
-    return (object)[
-        'state' => 'pending',
-        'value' => null,
-        'reason' => null
-    ];
+    return $p;
 };
+return $exports;
