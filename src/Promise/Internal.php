@@ -28,7 +28,7 @@ class PhpursPromise {
         $this->value = $val;
         foreach ($this->handlers as $handler) {
             self::queueTask(function() use ($handler) {
-                $handler->onFulfilled($this->value);
+                ($handler->onFulfilled)($this->value);
             });
         }
         $this->handlers = [];
@@ -40,7 +40,7 @@ class PhpursPromise {
         $this->reason = $err;
         foreach ($this->handlers as $handler) {
             self::queueTask(function() use ($handler) {
-                $handler->onRejected($this->reason);
+                ($handler->onRejected)($this->reason);
             });
         }
         $this->handlers = [];
@@ -85,11 +85,11 @@ class PhpursPromise {
         
         if ($this->state === 'fulfilled') {
             self::queueTask(function() use ($handler) {
-                $handler->onFulfilled($this->value);
+                ($handler->onFulfilled)($this->value);
             });
         } elseif ($this->state === 'rejected') {
             self::queueTask(function() use ($handler) {
-                $handler->onRejected($this->reason);
+                ($handler->onRejected)($this->reason);
             });
         } else {
             $this->handlers[] = $handler;
