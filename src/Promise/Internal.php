@@ -168,7 +168,7 @@ $exports['all'] = function($arr) {
             $results[$i] = $v;
             $remaining--;
             if ($remaining === 0) {
-                k\sort($results);
+                \ksort($results);
                 $p->resolve(array_values($results));
             }
         }, function($e) use ($p) {
