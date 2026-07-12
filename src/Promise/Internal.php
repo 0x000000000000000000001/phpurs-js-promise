@@ -157,18 +157,18 @@ $exports['reject'] = function($err) {
 
 $exports['all'] = function($arr) {
     $p = new PhpursPromise();
-    if (count($arr) === 0) {
+    if (\count($arr) === 0) {
         $p->resolve([]);
         return $p;
     }
     $results = [];
-    $remaining = count($arr);
+    $remaining = \count($arr);
     foreach ($arr as $i => $prom) {
         $prom->then(function($v) use (&$results, &$remaining, $i, $p) {
             $results[$i] = $v;
             $remaining--;
             if ($remaining === 0) {
-                ksort($results);
+                k\sort($results);
                 $p->resolve(array_values($results));
             }
         }, function($e) use ($p) {
