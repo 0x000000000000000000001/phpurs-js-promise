@@ -104,11 +104,17 @@ class PhpursPromise {
     public function finally($onFinally) {
         return $this->then(
             function($v) use ($onFinally) {
-                $onFinally()(); 
+                $res = $onFinally();
+                if ($res instanceof PhpursPromise) {
+                    return $res->then(function() use ($v) { return $v; });
+                }
                 return $v;
             },
             function($e) use ($onFinally) {
-                $onFinally()();
+                $res = $onFinally();
+                if ($res instanceof PhpursPromise) {
+                    return $res->then(function() use ($e) { throw $e; });
+                }
                 throw $e; 
             }
         );
@@ -123,7 +129,11 @@ $exports['new'] = function($k) {
     $reject = function($err) use ($p) {
         $p->reject($err);
     };
-    $k($resolve, $reject);
+    try {
+        $k($resolve, $reject);
+    } catch (\Throwable $e) {
+        $p->reject($e);
+    }
     return $p;
 };
 
