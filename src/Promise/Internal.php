@@ -2,8 +2,8 @@
 
 class PhpursPromise {
     public $state = 'pending';
-    public $value = null;
-    public $reason = null;
+    public $value;
+    public $reason;
     public $handlers = [];
 
     public static $fuel = 200;
@@ -46,7 +46,7 @@ class PhpursPromise {
         $this->handlers = [];
     }
 
-    public function then($onFulfilled, $onRejected = null) {
+    public function then($onFulfilled, $onRejected) {
         $p = new PhpursPromise();
         $handler = (object)[
             'onFulfilled' => function($v) use ($onFulfilled, $p) {
