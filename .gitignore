@@ -9,3 +9,5 @@ package-lock.json
 /output/
 /generated-docs/
 .DS_Store
+.spago
+output
