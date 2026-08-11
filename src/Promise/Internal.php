@@ -138,7 +138,7 @@ $exports['new'] = function($k) {
 };
 
 $exports['then_'] = function($k, $p) {
-    return $p->then($k);
+    return $p->then($k, null);
 };
 
 $exports['thenOrCatch'] = function($k, $c, $p) {

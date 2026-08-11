@@ -4,11 +4,14 @@ package:
     - console
     - effect
     - exceptions
+    - foldable-traversable
     - functions
     - prelude
   test:
     main: Test.Main
-    dependencies: []
+    dependencies: 
+      - assert
+      - refs
 workspace:
   packageSet:
     registry: 77.7.0

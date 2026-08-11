@@ -8,18 +8,22 @@
             "console",
             "effect",
             "exceptions",
+            "foldable-traversable",
             "functions",
             "prelude"
           ]
         },
         "test": {
-          "dependencies": []
+          "dependencies": [
+            "assert",
+            "refs"
+          ]
         }
       }
     },
     "package_set": {
       "address": {
-        "registry": "77.11.0"
+        "registry": "77.7.0"
       },
       "compiler": ">=0.15.15 <0.16.0",
       "content": {
@@ -221,7 +225,6 @@
         "halogen-vdom": "8.0.0",
         "halogen-vdom-string-renderer": "0.5.0",
         "halogen-xterm": "2.0.0",
-        "harmonia": "0.2.0",
         "heckin": "2.0.1",
         "heterogeneous": "0.7.0",
         "homogeneous": "0.4.0",
@@ -511,7 +514,7 @@
         "tanstack-query": "3.0.0",
         "tecton": "0.2.1",
         "tecton-halogen": "0.2.0",
-        "temporal": "0.2.0",
+        "temporal": "0.1.0",
         "test-unit": "17.0.0",
         "text-formatting": "0.1.0",
         "thermite": "6.3.1",
@@ -567,7 +570,7 @@
         "versions": "7.0.0",
         "visx": "0.0.2",
         "vitest": "2.0.0",
-        "wasm-base": "0.2.0",
+        "wasm-base": "0.1.1",
         "web-chain": "1.0.1",
         "web-clipboard": "6.0.0",
         "web-cssom": "2.0.0",
@@ -627,7 +630,7 @@
         "yoga-docker-compose": "0.1.1",
         "yoga-dynamodb": "0.1.1",
         "yoga-elasticsearch": "0.1.1",
-        "yoga-fastify": "0.5.2",
+        "yoga-fastify": "0.5.1",
         "yoga-fastify-om": "0.4.4",
         "yoga-fetch": "1.0.1",
         "yoga-fetch-om": "0.6.3",
@@ -653,7 +656,7 @@
         "yoga-redis": "0.1.0",
         "yoga-shadcn": "1.0.5",
         "yoga-sql-types": "0.1.0",
-        "yoga-sqlite": "0.3.3",
+        "yoga-sqlite": "0.3.2",
         "yoga-sse": "0.1.1",
         "yoga-subtlecrypto": "0.1.0",
         "yoga-test-docker": "0.1.2",
@@ -665,16 +668,203 @@
         "zipperarray": "2.0.0"
       }
     },
-    "extra_packages": {}
+    "extra_packages": {
+      "aff": {
+        "path": "../phpurs-aff"
+      },
+      "argonaut-core": {
+        "path": "../phpurs-argonaut-core"
+      },
+      "arrays": {
+        "path": "../phpurs-arrays"
+      },
+      "assert": {
+        "path": "../phpurs-assert"
+      },
+      "avar": {
+        "path": "../phpurs-avar"
+      },
+      "catenable-lists": {
+        "path": "../phpurs-catenable-lists"
+      },
+      "console": {
+        "path": "../phpurs-console"
+      },
+      "datetime": {
+        "path": "../phpurs-datetime"
+      },
+      "effect": {
+        "path": "../phpurs-effect"
+      },
+      "enums": {
+        "path": "../phpurs-enums"
+      },
+      "exceptions": {
+        "path": "../phpurs-exceptions"
+      },
+      "foldable-traversable": {
+        "path": "../phpurs-foldable-traversable"
+      },
+      "foreign": {
+        "path": "../phpurs-foreign"
+      },
+      "foreign-object": {
+        "path": "../phpurs-foreign-object"
+      },
+      "free": {
+        "path": "../phpurs-free"
+      },
+      "functions": {
+        "path": "../phpurs-functions"
+      },
+      "integers": {
+        "path": "../phpurs-integers"
+      },
+      "js-promise": {
+        "path": "../phpurs-js-promise"
+      },
+      "js-promise-aff": {
+        "path": "../phpurs-js-promise-aff"
+      },
+      "js-uri": {
+        "path": "../phpurs-js-uri"
+      },
+      "lazy": {
+        "path": "../phpurs-lazy"
+      },
+      "math": {
+        "path": "../phpurs-math"
+      },
+      "node-event-emitter": {
+        "path": "../phpurs-node-event-emitter"
+      },
+      "node-fs": {
+        "path": "../phpurs-node-fs"
+      },
+      "node-http": {
+        "path": "../phpurs-node-http"
+      },
+      "node-net": {
+        "path": "../phpurs-node-net"
+      },
+      "node-path": {
+        "path": "../phpurs-node-path"
+      },
+      "node-process": {
+        "path": "../phpurs-node-process"
+      },
+      "node-streams": {
+        "path": "../phpurs-node-streams"
+      },
+      "now": {
+        "path": "../phpurs-now"
+      },
+      "nullable": {
+        "path": "../phpurs-nullable"
+      },
+      "numbers": {
+        "path": "../phpurs-numbers"
+      },
+      "partial": {
+        "path": "../phpurs-partial"
+      },
+      "prelude": {
+        "path": "../phpurs-prelude"
+      },
+      "random": {
+        "path": "../phpurs-random"
+      },
+      "record": {
+        "path": "../phpurs-record"
+      },
+      "refs": {
+        "path": "../phpurs-refs"
+      },
+      "run": {
+        "path": "../phpurs-run"
+      },
+      "simple-json": {
+        "path": "../phpurs-simple-json"
+      },
+      "spec": {
+        "path": "../phpurs-spec"
+      },
+      "st": {
+        "path": "../phpurs-st"
+      },
+      "starter": {
+        "path": "../phpurs-starter"
+      },
+      "strings": {
+        "path": "../phpurs-strings"
+      },
+      "unfoldable": {
+        "path": "../phpurs-unfoldable"
+      },
+      "unsafe-coerce": {
+        "path": "../phpurs-unsafe-coerce"
+      },
+      "uuid": {
+        "path": "../phpurs-uuid"
+      },
+      "variant": {
+        "path": "../phpurs-variant"
+      },
+      "yoga-json": {
+        "path": "../phpurs-yoga-json"
+      }
+    }
   },
   "packages": {
-    "console": {
+    "assert": {
+      "type": "local",
+      "path": "../phpurs-assert",
+      "dependencies": [
+        "console",
+        "effect",
+        "prelude"
+      ]
+    },
+    "bifunctors": {
       "type": "registry",
       "version": "6.1.0",
-      "integrity": "sha256-3T5PPz1mATZmV0C4GzkCkpLlCa5xG7u8ZNgnLrrrI1Q=",
+      "integrity": "sha256-CvZRb8uI75eKIqiYntR+k05Wk6tKlMS5w8sCA2AFna0=",
+      "dependencies": [
+        "const",
+        "either",
+        "newtype",
+        "prelude",
+        "tuples"
+      ]
+    },
+    "console": {
+      "type": "local",
+      "path": "../phpurs-console",
       "dependencies": [
         "effect",
         "prelude"
+      ]
+    },
+    "const": {
+      "type": "registry",
+      "version": "6.0.0",
+      "integrity": "sha256-S+m0lQsxnji0z1XRUmkn+3RFuWJ5CXWuIr1u3i8Bfoc=",
+      "dependencies": [
+        "invariant",
+        "newtype",
+        "prelude"
+      ]
+    },
+    "contravariant": {
+      "type": "registry",
+      "version": "6.0.0",
+      "integrity": "sha256-nuckEWqL80NaPmR/l9AUyrfycNh18XcvlZV9PAamwqc=",
+      "dependencies": [
+        "const",
+        "either",
+        "newtype",
+        "prelude",
+        "tuples"
       ]
     },
     "control": {
@@ -686,10 +876,21 @@
         "prelude"
       ]
     },
-    "effect": {
+    "distributive": {
       "type": "registry",
-      "version": "4.0.0",
-      "integrity": "sha256-DdqU3bncRTjgMVPPRlAuGHVeajSPEcRaRhNuio7if6s=",
+      "version": "6.0.0",
+      "integrity": "sha256-netyJK4B32PDYHD0tF2AenKgo3urzbI770ycM0pArAo=",
+      "dependencies": [
+        "identity",
+        "newtype",
+        "prelude",
+        "tuples",
+        "type-equality"
+      ]
+    },
+    "effect": {
+      "type": "local",
+      "path": "../phpurs-effect",
       "dependencies": [
         "prelude"
       ]
@@ -706,9 +907,8 @@
       ]
     },
     "exceptions": {
-      "type": "registry",
-      "version": "6.1.0",
-      "integrity": "sha256-nRrr+N0wk0TUFOWLR7e1n1oxcXo/X345bQUtoY9lW6A=",
+      "type": "local",
+      "path": "../phpurs-exceptions",
       "dependencies": [
         "effect",
         "either",
@@ -716,11 +916,66 @@
         "prelude"
       ]
     },
-    "functions": {
+    "exists": {
       "type": "registry",
       "version": "6.0.0",
-      "integrity": "sha256-0jgtOr+SFO4UScKc40oA/9Vdcf2rLn3h3vZlY0KfqVo=",
+      "integrity": "sha256-vtLbrWNaI+pzx/2fw2AQnCovoLtcosClIhjO26QKkh8=",
       "dependencies": [
+        "unsafe-coerce"
+      ]
+    },
+    "foldable-traversable": {
+      "type": "local",
+      "path": "../phpurs-foldable-traversable",
+      "dependencies": [
+        "bifunctors",
+        "const",
+        "control",
+        "either",
+        "functors",
+        "identity",
+        "maybe",
+        "newtype",
+        "orders",
+        "prelude",
+        "tuples"
+      ]
+    },
+    "functions": {
+      "type": "local",
+      "path": "../phpurs-functions",
+      "dependencies": [
+        "prelude"
+      ]
+    },
+    "functors": {
+      "type": "registry",
+      "version": "5.0.0",
+      "integrity": "sha256-W1o/4wcp6S3chodYL8uixlXK2mfr1L+SzM1R+whqUco=",
+      "dependencies": [
+        "bifunctors",
+        "const",
+        "contravariant",
+        "control",
+        "distributive",
+        "either",
+        "invariant",
+        "maybe",
+        "newtype",
+        "prelude",
+        "profunctor",
+        "tuples",
+        "unsafe-coerce"
+      ]
+    },
+    "identity": {
+      "type": "registry",
+      "version": "6.0.0",
+      "integrity": "sha256-RY/iXPpxpqvKHYfJeFVNI1J06kohB9rbtWYuha8t0LE=",
+      "dependencies": [
+        "control",
+        "invariant",
+        "newtype",
         "prelude"
       ]
     },
@@ -753,11 +1008,42 @@
         "safe-coerce"
       ]
     },
-    "prelude": {
+    "orders": {
       "type": "registry",
-      "version": "6.0.2",
-      "integrity": "sha256-IqykrDRquGUD/LRSad7y75hZv3bUsGQ4knc8tdez8Qw=",
+      "version": "6.0.0",
+      "integrity": "sha256-nSMxZK7wxyDULkjZqvMyB71mVo6b0AyLLHosDVbv1XM=",
+      "dependencies": [
+        "newtype",
+        "prelude"
+      ]
+    },
+    "prelude": {
+      "type": "local",
+      "path": "../phpurs-prelude",
       "dependencies": []
+    },
+    "profunctor": {
+      "type": "registry",
+      "version": "6.0.1",
+      "integrity": "sha256-Ow0mJC+PIIRq/a3mzCWY5vxuTgR/e+Ee68+mWeSRnWY=",
+      "dependencies": [
+        "control",
+        "distributive",
+        "either",
+        "exists",
+        "invariant",
+        "newtype",
+        "prelude",
+        "tuples"
+      ]
+    },
+    "refs": {
+      "type": "local",
+      "path": "../phpurs-refs",
+      "dependencies": [
+        "effect",
+        "prelude"
+      ]
     },
     "safe-coerce": {
       "type": "registry",
@@ -767,10 +1053,25 @@
         "unsafe-coerce"
       ]
     },
-    "unsafe-coerce": {
+    "tuples": {
       "type": "registry",
-      "version": "6.0.0",
-      "integrity": "sha256-0L1QsaY20OILjfU5TV72d3U/tSjhmL9hJ32WMp857Lk=",
+      "version": "7.0.0",
+      "integrity": "sha256-BKy7EfK8S1KeTCwyWqyW1wwcpSAQuh3IsczSVgS6fzY=",
+      "dependencies": [
+        "control",
+        "invariant",
+        "prelude"
+      ]
+    },
+    "type-equality": {
+      "type": "registry",
+      "version": "4.0.1",
+      "integrity": "sha256-BBqYOSnAKmayRvR5mtZoCf4SlYs2ipatD/+5nQx73aw=",
+      "dependencies": []
+    },
+    "unsafe-coerce": {
+      "type": "local",
+      "path": "../phpurs-unsafe-coerce",
       "dependencies": []
     }
   }
