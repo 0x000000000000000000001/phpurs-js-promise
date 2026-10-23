@@ -1,14 +1,17 @@
 <?php
 
-class PhpursPromise {
+class PhpursPromise
+{
     public $state = 'pending';
     public $value;
     public $reason;
     public $handlers = [];
 
+    // Keep short chains synchronous; yield through Revolt after this many tasks.
     public static $fuel = 200;
 
-    public static function queueTask(callable $task) {
+    public static function queueTask(callable $task)
+    {
         if (self::$fuel <= 0) {
             self::$fuel = 200;
             if (class_exists('\\Revolt\\EventLoop')) {
@@ -22,181 +25,194 @@ class PhpursPromise {
         }
     }
 
-    public function resolve($val) {
-        if ($this->state !== 'pending') return;
+    public function resolve($value)
+    {
+        if ($this->state !== 'pending') {
+            return;
+        }
         $this->state = 'fulfilled';
-        $this->value = $val;
+        $this->value = $value;
         foreach ($this->handlers as $handler) {
-            self::queueTask(function() use ($handler) {
+            self::queueTask(function () use ($handler) {
                 ($handler->onFulfilled)($this->value);
             });
         }
         $this->handlers = [];
     }
 
-    public function reject($err) {
-        if ($this->state !== 'pending') return;
+    public function reject($error)
+    {
+        if ($this->state !== 'pending') {
+            return;
+        }
         $this->state = 'rejected';
-        $this->reason = $err;
+        $this->reason = $error;
         foreach ($this->handlers as $handler) {
-            self::queueTask(function() use ($handler) {
+            self::queueTask(function () use ($handler) {
                 ($handler->onRejected)($this->reason);
             });
         }
         $this->handlers = [];
     }
 
-    public function then($onFulfilled, $onRejected) {
-        $p = new PhpursPromise();
-        $handler = (object)[
-            'onFulfilled' => function($v) use ($onFulfilled, $p) {
-                try {
-                    if ($onFulfilled) {
-                        $res = $onFulfilled($v);
-                        if ($res instanceof PhpursPromise) {
-                            $res->then([$p, 'resolve'], [$p, 'reject']);
-                        } else {
-                            $p->resolve($res);
-                        }
-                    } else {
-                        $p->resolve($v);
-                    }
-                } catch (\Throwable $e) {
-                    $p->reject($e);
-                }
-            },
-            'onRejected' => function($e) use ($onRejected, $p) {
-                try {
-                    if ($onRejected) {
-                        $res = $onRejected($e);
-                        if ($res instanceof PhpursPromise) {
-                            $res->then([$p, 'resolve'], [$p, 'reject']);
-                        } else {
-                            $p->resolve($res);
-                        }
-                    } else {
-                        $p->reject($e);
-                    }
-                } catch (\Throwable $e2) {
-                    $p->reject($e2);
-                }
-            }
+    public function then($onFulfilled, $onRejected)
+    {
+        $nextPromise = new PhpursPromise();
+        $handler = (object) [
+            'onFulfilled' => self::chainHandler($onFulfilled, $nextPromise, false),
+            'onRejected' => self::chainHandler($onRejected, $nextPromise, true),
         ];
-        
+
         if ($this->state === 'fulfilled') {
-            self::queueTask(function() use ($handler) {
+            self::queueTask(function () use ($handler) {
                 ($handler->onFulfilled)($this->value);
             });
         } elseif ($this->state === 'rejected') {
-            self::queueTask(function() use ($handler) {
+            self::queueTask(function () use ($handler) {
                 ($handler->onRejected)($this->reason);
             });
         } else {
             $this->handlers[] = $handler;
         }
-        return $p;
+        return $nextPromise;
     }
-    
-    public function catch($onRejected) {
+
+    private static function chainHandler($callback, $nextPromise, $isRejection)
+    {
+        return function ($value) use ($callback, $nextPromise, $isRejection) {
+            try {
+                if (!$callback) {
+                    if ($isRejection) {
+                        $nextPromise->reject($value);
+                    } else {
+                        $nextPromise->resolve($value);
+                    }
+                    return;
+                }
+                $result = $callback($value);
+                if ($result instanceof PhpursPromise) {
+                    $result->then([$nextPromise, 'resolve'], [$nextPromise, 'reject']);
+                } else {
+                    $nextPromise->resolve($result);
+                }
+            } catch (\Throwable $error) {
+                $nextPromise->reject($error);
+            }
+        };
+    }
+
+    public function catch($onRejected)
+    {
         return $this->then(null, $onRejected);
     }
-    
-    public function finally($onFinally) {
+
+    public function finally($onFinally)
+    {
         return $this->then(
-            function($v) use ($onFinally) {
-                $res = $onFinally();
-                if ($res instanceof PhpursPromise) {
-                    return $res->then(function() use ($v) { return $v; });
+            function ($value) use ($onFinally) {
+                $result = $onFinally();
+                if ($result instanceof PhpursPromise) {
+                    return $result->then(function () use ($value) {
+                        return $value;
+                    }, null);
                 }
-                return $v;
+                return $value;
             },
-            function($e) use ($onFinally) {
-                $res = $onFinally();
-                if ($res instanceof PhpursPromise) {
-                    return $res->then(function() use ($e) { throw $e; });
+            function ($error) use ($onFinally) {
+                $result = $onFinally();
+                if ($result instanceof PhpursPromise) {
+                    return $result->then(function () use ($error) {
+                        throw $error;
+                    }, null);
                 }
-                throw $e; 
-            }
+                throw $error;
+            },
         );
     }
 }
 
-$exports['new'] = function($k) {
-    $p = new PhpursPromise();
-    $resolve = function($val) use ($p) {
-        $p->resolve($val);
+$exports['new'] = function ($k) {
+    $promise = new PhpursPromise();
+    $resolve = function ($value) use ($promise) {
+        $promise->resolve($value);
     };
-    $reject = function($err) use ($p) {
-        $p->reject($err);
+    $reject = function ($error) use ($promise) {
+        $promise->reject($error);
     };
     try {
         $k($resolve, $reject);
-    } catch (\Throwable $e) {
-        $p->reject($e);
+    } catch (\Throwable $error) {
+        $promise->reject($error);
     }
-    return $p;
+    return $promise;
 };
 
-$exports['then_'] = function($k, $p) {
-    return $p->then($k, null);
+$exports['then_'] = function ($k, $promise) {
+    return $promise->then($k, null);
 };
 
-$exports['thenOrCatch'] = function($k, $c, $p) {
-    return $p->then($k, $c);
+$exports['thenOrCatch'] = function ($k, $c, $promise) {
+    return $promise->then($k, $c);
 };
 
-$exports['catch'] = function($c, $p) {
-    return $p->catch($c);
+$exports['catch'] = function ($c, $promise) {
+    return $promise->catch($c);
 };
 
-$exports['finally'] = function($k, $p) {
-    return $p->finally($k);
+$exports['finally'] = function ($k, $promise) {
+    return $promise->finally($k);
 };
 
-$exports['resolve'] = function($a) {
-    $p = new PhpursPromise();
-    $p->resolve($a);
-    return $p;
+$exports['resolve'] = function ($a) {
+    $promise = new PhpursPromise();
+    $promise->resolve($a);
+    return $promise;
 };
 
-$exports['reject'] = function($err) {
-    $p = new PhpursPromise();
-    $p->reject($err);
-    return $p;
+$exports['reject'] = function ($error) {
+    $promise = new PhpursPromise();
+    $promise->reject($error);
+    return $promise;
 };
 
-$exports['all'] = function($arr) {
-    $p = new PhpursPromise();
-    if (\count($arr) === 0) {
-        $p->resolve([]);
-        return $p;
+$exports['all'] = function ($promises) {
+    $promise = new PhpursPromise();
+    if (\count($promises) === 0) {
+        $promise->resolve([]);
+        return $promise;
     }
     $results = [];
-    $remaining = \count($arr);
-    foreach ($arr as $i => $prom) {
-        $prom->then(function($v) use (&$results, &$remaining, $i, $p) {
-            $results[$i] = $v;
-            $remaining--;
-            if ($remaining === 0) {
-                \ksort($results);
-                $p->resolve(array_values($results));
-            }
-        }, function($e) use ($p) {
-            $p->reject($e);
-        });
+    $remaining = \count($promises);
+    foreach ($promises as $index => $inputPromise) {
+        $inputPromise->then(
+            function ($value) use (&$results, &$remaining, $index, $promise) {
+                $results[$index] = $value;
+                $remaining--;
+                if ($remaining === 0) {
+                    \ksort($results);
+                    $promise->resolve(array_values($results));
+                }
+            },
+            function ($error) use ($promise) {
+                $promise->reject($error);
+            },
+        );
     }
-    return $p;
+    return $promise;
 };
 
-$exports['race'] = function($arr) {
-    $p = new PhpursPromise();
-    foreach ($arr as $prom) {
-        $prom->then(function($v) use ($p) {
-            $p->resolve($v);
-        }, function($e) use ($p) {
-            $p->reject($e);
-        });
+$exports['race'] = function ($promises) {
+    $promise = new PhpursPromise();
+    foreach ($promises as $inputPromise) {
+        $inputPromise->then(
+            function ($value) use ($promise) {
+                $promise->resolve($value);
+            },
+            function ($error) use ($promise) {
+                $promise->reject($error);
+            },
+        );
     }
-    return $p;
+    return $promise;
 };
 return $exports;

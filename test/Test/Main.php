@@ -1,11 +1,11 @@
 <?php
 
 return [
-    'delay' => function($ms) {
-        return function() use ($ms) {
+    'delay' => function ($ms) {
+        return function () use ($ms) {
             $p = new \Promise\Internal\PhpursPromise();
             if (\class_exists('\\Revolt\\EventLoop')) {
-                \Revolt\EventLoop::delay($ms / 1000, function() use ($p) {
+                \Revolt\EventLoop::delay($ms / 1000, function () use ($p) {
                     $p->resolve(0);
                 });
             } else {
@@ -15,18 +15,18 @@ return [
             return $p;
         };
     },
-    'failAfter' => function($ms) {
-        return function() use ($ms) {
+    'failAfter' => function ($ms) {
+        return function () use ($ms) {
             $p = new \Promise\Internal\PhpursPromise();
             if (\class_exists('\\Revolt\\EventLoop')) {
-                \Revolt\EventLoop::delay($ms / 1000, function() use ($p) {
-                    $p->reject(new \Exception("fail"));
+                \Revolt\EventLoop::delay($ms / 1000, function () use ($p) {
+                    $p->reject(new \Exception('fail'));
                 });
             } else {
                 \usleep($ms * 1000);
-                $p->reject(new \Exception("fail"));
+                $p->reject(new \Exception('fail'));
             }
             return $p;
         };
-    }
+    },
 ];

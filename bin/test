@@ -1,38 +1,5 @@
 #!/usr/bin/env bash
-set -e
-cd "$(dirname "$0")/.."
+set -euo pipefail
 
-CLEAN=0
-for arg in "$@"; do
-  if [ "$arg" == "-c" ] || [ "$arg" == "--clean" ]; then
-    CLEAN=1
-  fi
-done
-
-if [ "$CLEAN" == "1" ]; then
-  COMPILER_DIR="../phpurs"
-  echo "=== Recompiling ${COMPILER_DIR} ==="
-  (cd "${COMPILER_DIR}" && npm run build) || { echo "Compiler build failed"; exit 1; }
-fi
-
-# Remove cache for safety
-rm -rf output
-
-rm -f spago.yaml
-ln -s spago.php.yaml spago.yaml
-
-echo "=== Building project with spago ==="
-spago build || { echo "Spago build failed"; exit 1; }
-
-echo "=== Generating PHP code with phpurs ==="
-../phpurs/bin/phpurs --main Test.Main || exit 1
-
-echo "=== Running PHP test script ==="
-if [ -f "output/Test.Main/main.mod.php" ]; then
-    php output/Test.Main/main.mod.php
-else
-    echo "No output/Test.Main/main.mod.php found."
-    exit 1
-fi
-echo -e "
-✅ Tests passed successfully!"
+PACKAGE_DIR=$(cd "$(dirname "$0")/.." && pwd)
+exec "$PACKAGE_DIR/../phpurs/bin/test-package" "$PACKAGE_DIR" "$@"

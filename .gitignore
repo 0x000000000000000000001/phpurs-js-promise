@@ -14,3 +14,6 @@ output.bak/
 output
 output.bak
 .psc-ide-port
+
+# Shared PHP editing conventions.
+!/.editorconfig
